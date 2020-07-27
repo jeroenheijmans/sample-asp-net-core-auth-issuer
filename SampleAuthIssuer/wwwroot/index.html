@@ -22,6 +22,9 @@
         button:hover {
             outline: 1px solid black;
         }
+        label {
+            cursor: pointer;
+        }
     </style>
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
@@ -103,8 +106,13 @@
     <p>Page best viewed with developer console open.</p>
     <p>You are viewing this from <strong id="host"></strong>.</p>
     <p>Call API via:</p>
-    <label><input type="radio" name="apiUrl" data-url="https://localhost:5001" /> https://localhost:5001</label>
-    <label><input type="radio" name="apiUrl" data-url="https://localhost:5002" /> https://localhost:5002</label>
+    <p>
+        <label><input type="radio" name="apiUrl" data-url="https://localhost:5001" /> https://localhost:5001</label>
+    </p>
+    <p>
+        <label><input type="radio" name="apiUrl" data-url="https://localhost:5002" /> https://localhost:5002</label>
+        (see `ValidIssuers` in `Startup.cs` to allow this at all)
+    </p>
     <p class="buttons">
         <button id="btnResetToken">Clear access token</button>
         <button id="btnAdmin1">Fetch Access Token for Administrator on https://localhost:5001</button>

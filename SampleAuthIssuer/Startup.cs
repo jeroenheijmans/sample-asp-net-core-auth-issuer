@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Logging;
+using Microsoft.IdentityModel.Tokens;
 
 namespace SampleAuthIssuer
 {
@@ -17,10 +18,20 @@ namespace SampleAuthIssuer
             IdentityModelEventSource.ShowPII = true; // For testing only!!
 
             services.AddAuthentication("Bearer")
-                .AddIdentityServerAuthentication(options =>
+                .AddJwtBearer(options =>
                 {
                     options.Authority = "https://localhost:5001";
-                    options.ApiName = "foo-api";
+                    options.Audience = "foo-api";
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        ValidIssuers = new[]
+                        {
+                            "https://localhost:5001",
+                            // "https://localhost:5002", // Turn this on to allow it as a valid issuer
+                        },
+                        NameClaimType = "name",
+                        RoleClaimType = "role",
+                    };
                 });
 
             services.AddAuthorization();
