@@ -1,6 +1,6 @@
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Logging;
 
 namespace SampleAuthIssuer
 {
@@ -14,6 +14,8 @@ namespace SampleAuthIssuer
                .AddTestUsers(IdentityServerConfig.TestUsers)
                .AddDeveloperSigningCredential();
 
+            IdentityModelEventSource.ShowPII = true; // For testing only!!
+
             services.AddAuthentication("Bearer")
                 .AddIdentityServerAuthentication(options =>
                 {
@@ -21,12 +23,10 @@ namespace SampleAuthIssuer
                     options.ApiName = "foo-api";
                 });
 
-            services.AddAuthorization(options =>
-            {
-                options.DefaultPolicy = new AuthorizationPolicyBuilder()
-                    .RequireAuthenticatedUser()
-                    .Build();
-            });
+            services.AddAuthorization();
+
+            // Just for testing!
+            services.AddCors(o => o.AddDefaultPolicy(p => p.AllowAnyOrigin().AllowAnyMethod().AllowAnyHeader()));
 
             services.AddControllers();
         }
@@ -34,6 +34,7 @@ namespace SampleAuthIssuer
         public void Configure(IApplicationBuilder app)
         {
             app.UseHttpsRedirection();
+            app.UseCors();
             app.UseIdentityServer();
             app.UseRouting();
             app.UseAuthentication();

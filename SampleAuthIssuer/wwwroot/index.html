@@ -26,6 +26,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
             let capturedAccessToken = null;
+            let apiUrl = "https://localhost:5001";
 
             function clearAccessToken() {
                 capturedAccessToken = null;
@@ -45,15 +46,15 @@
             };
 
             async function apiGet(route) {
-                const headers = capturedAccessToken ? { "Authorization": `Bearer ${capturedAccessToken}` } : { };
-                const response = await fetch(route, { headers });
+                const headers = capturedAccessToken ? { "Authorization": `Bearer ${capturedAccessToken}` } : {};
+                const response = await fetch(apiUrl + route, { headers });
                 if (response.status >= 400) { return `Response status ${response.status}`; }
                 const json = await response.json();
                 return JSON.stringify(json, null, 2);
             }
 
-            async function getTokenResponse(username) {
-                const response = await fetch("/connect/token", {
+            async function getTokenResponse(username, baseUrl) {
+                const response = await fetch(baseUrl + "/connect/token", {
                     method: "POST",
                     headers: {
                         'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
@@ -70,6 +71,7 @@
 
                 if (!!json.access_token) {
                     capturedAccessToken = json.access_token;
+                    console.log(capturedAccessToken);
                     el("token").innerHTML = JSON.stringify(parseJwt(capturedAccessToken), null, 2);
                 }
 
@@ -80,25 +82,38 @@
             const els = selector => Array.from(document.querySelectorAll(selector));
 
             el("btnResetToken").addEventListener("click", () => el("data").value = clearAccessToken());
-            el("btnAdmin").addEventListener("click", async () => el("data").value = await getTokenResponse("admin"));
+            el("btnAdmin1").addEventListener("click", async () => el("data").value = await getTokenResponse("admin", "https://localhost:5001"));
+            el("btnAdmin2").addEventListener("click", async () => el("data").value = await getTokenResponse("admin", "https://localhost:5002"));
 
             els("button.getter").forEach(btn => {
-                btn.innerHTML = "GET /" + btn.dataset.route;
+                btn.innerHTML = "GET " + btn.dataset.route;
                 btn.addEventListener("click", async () => el("data").value = await apiGet(btn.dataset.route));
             });
+
+            els("input[name=apiUrl]").forEach(input => {
+                input.addEventListener("change", async () => apiUrl = input.dataset.url);
+                input.checked = input.dataset.url === location.origin;
+            });
+
+            el("host").innerText = location.host;
         });
     </script>
 </head>
 <body style="font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif">
     <p>Page best viewed with developer console open.</p>
+    <p>You are viewing this from <strong id="host"></strong>.</p>
+    <p>Call API via:</p>
+    <label><input type="radio" name="apiUrl" data-url="https://localhost:5001" /> https://localhost:5001</label>
+    <label><input type="radio" name="apiUrl" data-url="https://localhost:5002" /> https://localhost:5002</label>
     <p class="buttons">
         <button id="btnResetToken">Clear access token</button>
-        <button id="btnAdmin">Fetch Access Token for Administrator</button>
+        <button id="btnAdmin1">Fetch Access Token for Administrator on https://localhost:5001</button>
+        <button id="btnAdmin2">Fetch Access Token for Administrator on https://localhost:5002</button>
     </p>
     <div style="display: flex;">
         <p class="buttons" style="margin-right: 20px;">
-            <button class="getter" data-route="foo/"></button>
-            <button class="getter" data-route="foo/protected"></button>
+            <button class="getter" data-route="/foo"></button>
+            <button class="getter" data-route="/foo/protected"></button>
         </p>
     </div>
     <p>Response:</p>
